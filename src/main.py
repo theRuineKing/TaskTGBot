@@ -10,9 +10,10 @@ def main(message):
     webbrowser.open('https://mdl.sch239.net/course/view.php?id=368')'''
 
 categories = {
-  'Категория 1' : ['task1', 'task2'],
-  'Категория 2' : ['task3', 'task4']
+    'Категория 1': ['task1', 'task2'],
+    'Категория 2': ['task3', 'task4']
 }
+
 
 def toString(slovar):
     result = ''
@@ -23,38 +24,52 @@ def toString(slovar):
         result += '\n'
     return result
 
+
 @bot.message_handler(commands=['start'])
-def mainProgress(message):
+def mainProgress(message1):
     markup = types.ReplyKeyboardMarkup()
 
     btn1 = types.KeyboardButton('Добавить задачу')
     btn2 = types.KeyboardButton('Добавить категорию')
     markup.row(btn1, btn2)
 
-    bot.send_message(message.chat.id, toString(categories), reply_markup=markup)
-    bot.register_next_step_handler(message, funcProgress)
+    bot.send_message(message1.chat.id, toString(categories), reply_markup=markup)
+    bot.register_next_step_handler(message1, funcProgress)
 
-def funcProgress(message):
-    if message.text == 'Добавить задачу':
+
+def funcProgress(message2):
+    if message2.text == 'Добавить задачу':
         markup = types.InlineKeyboardMarkup()
 
-        btn1 = types.InlineKeyboardButton('Категория1', callback_data='1')
-        btn2 = types.InlineKeyboardButton('Категория2', callback_data='2')
-        markup.row(btn1)
-        markup.row(btn2)
-        bot.reply_to(message, 'Выберите категорию:', reply_markup=markup)
+        btns = []
+        for key in categories:
+            btns.append(types.InlineKeyboardButton(key, callback_data=key))
 
-    elif message.text == 'Добавить категорию':
-        bot.send_message(message.chat.id, 'Введите название категории:')
-    #bot.register_next_step_handler(message, func)
+        for btn in btns:
+            markup.row(btn)
+        bot.reply_to(message2, 'Выберите категорию:', reply_markup=markup)
 
-#обработка callback_data
+        bot.register_next_step_handler(message2, mainProgress)
+    elif message2.text == 'Добавить категорию':
+        bot.send_message(message2.chat.id, 'Введите название категории:')
+
+
+# обработка callback_data
 @bot.callback_query_handler(func=lambda callback: True)
 def callback_message(callback):
-    if callback.data == '1':
-        bot.delete_message(callback.message.chat.id, callback.message.message_id - 1) #удаляет предпоследнее сообщение
-    elif callback.data == '2':
-        bot.edit_message_text('Edited text', callback.message.chat.id, callback.message.message_id)
+    bot.send_message(callback.message.chat.id, 'Введите задачу:')
+    bot.register_next_step_handler(callback.message, appendTask, callback.data)
+
+    #bot.delete_message(callback.message.chat.id, callback.message.message_id - 1)  # удаляет предпоследнее сообщение
+    #elif callback.data == '2':
+    #   bot.edit_message_text('Edited text', callback.message.chat.id, callback.message.message_id)
+
+
+def appendTask(message, key):
+    categories[key].append(message.text)
+    #bot.send_message(message.chat.id, toString(categories))
+
+
 
 '''@bot.message_handler(commands=['x'])
 def start(message):
@@ -86,7 +101,6 @@ def get_photo(message):
     btn3 = types.InlineKeyboardButton('Изменить текст', callback_data='edit')
     markup.row(btn2, btn3)
     bot.reply_to(message, 'Photo', reply_markup=markup)'''
-
 
 '''@bot.message_handler(commands=['hello', 'main'])
 def main(message):
