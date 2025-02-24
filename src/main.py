@@ -9,12 +9,10 @@ bot = telebot.TeleBot(botKey)
 
 heading = ''
 
-
 categories = {
     'Категория 1': ['task1', 'task2'],
     'Категория 2': ['task3', 'task4']
 }
-
 
 def toString(slovar):
     result = ''
@@ -80,8 +78,6 @@ def funcProgress(message):
         bot.send_message(message.chat.id, 'Введите название категории:')
         bot.register_next_step_handler(message, appendCategory)'''
 
-
-# обработка callback_data
 @bot.callback_query_handler(func=lambda callback: True)
 def callback_message(callback):
     key = callback.data[1:]
@@ -114,8 +110,8 @@ def callback_message(callback):
         bot.register_next_step_handler(callback.message, deleteTask,
                                        callback.data[callback.data.index('|')+1:],
                                        int(callback.data[1:callback.data.index('|')]))
+
     #bot.delete_message(callback.message.chat.id, callback.message.message_id - 1) удаляет предпоследнее сообщение
-    #elif callback.data == '2':
     #bot.edit_message_text('Edited text', callback.message.chat.id, callback.message.message_id)
 
 def appendTask(message, key):
