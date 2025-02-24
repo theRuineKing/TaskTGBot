@@ -9,6 +9,7 @@ bot = telebot.TeleBot(botKey)
 
 heading = ''
 
+
 categories = {
     'Категория 1': ['task1', 'task2'],
     'Категория 2': ['task3', 'task4']
