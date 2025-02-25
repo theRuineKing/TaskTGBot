@@ -25,17 +25,30 @@ def toString(slovar):
         result += '\n'
     return result
 
-@bot.message_handler(commands=['addtask', 'renametask', 'deletetask'])
+@bot.message_handler(commands=['start'])
+def helloWorld(message):
+    bot.send_message(message.chat.id, 'Привет! Это бот "Диспетчер задач". '
+                                      'С его помощью вы можете:\n - отслеживать выполнение своих ежедневных и глобальных задач\n'
+                                      ' - разделять их по категориям\n - отмечать их выполнение \n - устанавливать временной лимит и напоминания\n'
+                                      ' - анализировать динамику своего прогресса, а также обращаться к полезным ресурсам по обучению и саморазвитию.')
+    showProgress(message)
+
+def showProgress(message):
+    bot.send_message(message.chat.id, toString(categories))
+
+@bot.message_handler(commands=['addcategorytask', 'renametask', 'deletetask', 'marktask'])
 def operateWithTask(message):
     markup = types.InlineKeyboardMarkup()
 
     btns = []
-    if message.text == '/addtask':
+    if message.text == '/addcategorytask':
         for key in categories: btns.append(types.InlineKeyboardButton(key, callback_data='1'+key))
     elif message.text == '/renametask':
         for key in categories: btns.append(types.InlineKeyboardButton(key, callback_data='2'+key))
-    else:
+    elif message.text == '/deletetask':
         for key in categories: btns.append(types.InlineKeyboardButton(key, callback_data='4'+key))
+    elif message.text == '/marktask':
+        for key in categories: btns.append(types.InlineKeyboardButton(key, callback_data='6'+key))
 
     for btn in btns:
         markup.row(btn)
@@ -110,7 +123,10 @@ def callback_message(callback):
         bot.register_next_step_handler(callback.message, deleteTask,
                                        callback.data[callback.data.index('|')+1:],
                                        int(callback.data[1:callback.data.index('|')]))
-
+    elif callback.data[0] == '6':
+        bot.register_next_step_handler(callback.message, markTask,
+                                       callback.data[callback.data.index('|')+1:],
+                                       int(callback.data[1:callback.data.index('|')]))
     #bot.delete_message(callback.message.chat.id, callback.message.message_id - 1) удаляет предпоследнее сообщение
     #bot.edit_message_text('Edited text', callback.message.chat.id, callback.message.message_id)
 
@@ -120,6 +136,10 @@ def appendTask(message, key):
 
 def renameTask(message, key, i):
     categories[key][i] = message.text
+    bot.send_message(message.chat.id, toString(categories))
+
+def markTask(message, key, i):
+    categories[key][i] = '✅' + categories[key][i]
     bot.send_message(message.chat.id, toString(categories))
 
 def deleteTask(message, key, i):
@@ -137,6 +157,12 @@ def appendCategory(message):
 def changeHeading(message):
     global heading
     heading = message.text
+    bot.send_message(message.chat.id, toString(categories))
+
+@bot.message_handler(commands=['deleteheading'])
+def deleteHeading(message):
+    global heading
+    heading = ''
     bot.send_message(message.chat.id, toString(categories))
 
 bot.polling(none_stop=True)
