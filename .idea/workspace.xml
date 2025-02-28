@@ -27,12 +27,12 @@
     &quot;assignee&quot;: &quot;theRuineKing&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/theRuineKing/TaskTGBot.git",
-    "accountId": "9c9fd904-91c5-490a-89f8-02167df12b04"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/theRuineKing/TaskTGBot.git&quot;,
+    &quot;accountId&quot;: &quot;9c9fd904-91c5-490a-89f8-02167df12b04&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -99,7 +99,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740121876145</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="1 commit">
+      <option name="closed" value="true" />
+      <created>1740124520660</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1740124520660</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
