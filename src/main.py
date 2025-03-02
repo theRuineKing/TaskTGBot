@@ -1,8 +1,6 @@
 import time
-
 import telebot
 import webbrowser
-from array import *
 from telebot import types
 from telebot.types import InlineKeyboardMarkup
 
@@ -13,6 +11,8 @@ heading = ''
 
 global chatID
 global dailyMessageID
+dailyMessageID = 0
+messages_to_delete = []
 
 categories = {
     'Категория 1': ['task1', 'task2'],
@@ -20,9 +20,7 @@ categories = {
 }
 
 def toString(slovar):
-    global chatID
-    dailyMessageID
-    bot.delete_message(chatID, dailyMessageID.message_id)
+    if dailyMessageID != 0: bot.delete_message(chatID, dailyMessageID)
     result = ''
     if heading != '':
         result += heading + '\n\n'
@@ -31,28 +29,53 @@ def toString(slovar):
         for item in slovar[key]:
             result += '- ' + item + '\n'
         result += '\n'
+
     return result
+
+def addToDeleteList(message):
+    messages_to_delete.append(message)
+
+'''@bot.message_handler(commands=['deletemess'])
+def deleteMessages():
+    for msg in messages_to_delete:
+        messages_to_delete.append(msg.message_id)
+
+    for msg_id in messages_to_delete:
+        try:
+            bot.delete_message(chat_id, msg_id)
+        except Exception as e:
+            print("", e)'''
 
 commands = ['/start', '/addheading','/addcategorytask','/addtask','/renametask','/marktask','/deletetask',
             '/addcategory','/renamecategory','/deletecategory', '/deleteheading']
 
 @bot.message_handler(commands=['start'])
 def helloWorld(message):
+    addToDeleteList(message)
     global chatID
     chatID = message.chat.id
     bot.send_message(message.chat.id, 'Привет! Это бот "Диспетчер задач". '
                                       'С его помощью вы можете:\n - отслеживать выполнение своих ежедневных и глобальных задач\n'
                                       ' - разделять их по категориям\n - отмечать их выполнение \n - устанавливать временной лимит и напоминания\n'
                                       ' - анализировать динамику своего прогресса, а также обращаться к полезным ресурсам по обучению и саморазвитию.')
-    showProgress(message)
+    showProgress()
 
-def showProgress(message):
+def showProgress():
     global dailyMessageID
-    dailyMessageID = bot.send_message(message.chat.id, toString(categories))
-
+    global chatID
+    dailyMessageID = bot.send_message(chatID, toString(categories)).message_id
+    for msg in messages_to_delete:
+        try:
+            bot.send_message(chatID, msg.text)
+            messages_to_delete.remove(msg)
+            bot.delete_message(chatID, msg.id)
+        except Exception as e:
+            print("", e)
 
 @bot.message_handler(commands=['addcategorytask', 'renametask', 'deletetask', 'marktask'])
 def operateWithTask(message):
+    addToDeleteList(message)
+
     markup = types.InlineKeyboardMarkup()
 
     btns = []
@@ -71,11 +94,13 @@ def operateWithTask(message):
 
 @bot.message_handler(commands=['addcategory'])
 def addCategory(message):
+    addToDeleteList(message)
     bot.send_message(message.chat.id, 'Введите название категории:')
     bot.register_next_step_handler(message, appendCategory)
 
 @bot.message_handler(commands=['addheading'])
 def addHeading(message):
+    addToDeleteList(message)
     bot.send_message(message.chat.id, 'Введите название:')
     bot.register_next_step_handler(message, changeHeading)
 
@@ -156,26 +181,26 @@ def callback_message(callback):
 
 def appendTask(message, key):
     categories[key].append(message.text)
-    bot.send_message(message.chat.id, toString(categories))
+    showProgress()
 
 def renameTask(message, key, i):
     categories[key][i] = message.text
-    bot.send_message(message.chat.id, toString(categories))
+    showProgress()
 
 def deleteTask(key, i):
     global chatID
     categories[key].pop(i)
-    bot.send_message(chatID, toString(categories))
+    showProgress()
 
 def markTask(key, i):
     global chatID
     categories[key][i] = '✅ ' + categories[key][i]
-    bot.send_message(chatID, toString(categories))
+    showProgress()
 
 def appendCategory(message):
     if len(message.text) < 65:
         categories[message.text] = []
-        bot.send_message(message.chat.id, toString(categories))
+        showProgress()
     else:
         bot.send_message(message.chat.id, 'Название слишком длинное. Сократите его или уберите несколько смайликов.')
         bot.register_next_step_handler(message, appendCategory)
@@ -183,7 +208,7 @@ def appendCategory(message):
 def changeHeading(message):
     global heading
     heading = message.text
-    bot.send_message(message.chat.id, toString(categories))
+    showProgress()
 
 @bot.message_handler(commands=['deleteheading'])
 def deleteHeading(message):
@@ -191,7 +216,7 @@ def deleteHeading(message):
     heading = ''
     global chatID
     chatID = message.chat.id
-    bot.send_message(message.chat.id, toString(categories))
+    showProgress()
 
 @bot.message_handler()
 def isRubbish(message):
