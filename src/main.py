@@ -2,6 +2,7 @@ import telebot
 import webbrowser
 from telebot import types
 from telebot.types import InlineKeyboardMarkup
+import sqlite3
 
 import schedule
 import time
@@ -35,8 +36,8 @@ def toString(slovar):
 
     return result
 
-def addToDeleteList(message):
-    messages_to_delete.append(message)
+#def addToDeleteList(message):
+ #   messages_to_delete.append(message)
 
 '''@bot.message_handler(commands=['deletemess'])
 def deleteMessages():
@@ -54,7 +55,12 @@ commands = ['/start', '/addheading','/addcategorytask','/addtask','/renametask',
 
 @bot.message_handler(commands=['start'])
 def helloWorld(message):
-    addToDeleteList(message)
+    #addToDeleteList(message)
+    conn = sqlite3.connect('telebot.sql')
+    cur = conn.cursor()
+
+    cur.execute('CREATE TABLE IF NOT EXISTS users (id int auto_increment primary key)')
+
     global chatID
     chatID = message.chat.id
     user_date = message.date
@@ -69,14 +75,12 @@ def showProgress():
     global dailyMessageID
     global chatID
     dailyMessageID = bot.send_message(chatID, toString(categories)).message_id
-    for msg in messages_to_delete:
+    '''for msg in messages_to_delete:
         try:
             messages_to_delete.remove(msg)
             bot.delete_message(chatID, msg.id)
         except Exception as e:
-            print("", e)
-    for msg in messages_to_delete:
-        bot.send_message(chatID, msg.text)
+            print("", e)'''
 
 def send_delayed_message(message):
     bot.send_message(chatID, message)
@@ -86,7 +90,7 @@ def schedule_message(message, delay):
 
 @bot.message_handler(commands=['addcategorytask', 'renametask', 'deletetask', 'marktask'])
 def operateWithTask(message):
-    addToDeleteList(message)
+    #addToDeleteList(message)
 
     markup = types.InlineKeyboardMarkup()
 
@@ -106,14 +110,13 @@ def operateWithTask(message):
 
 @bot.message_handler(commands=['addcategory'])
 def addCategory(message):
-    addToDeleteList(message)
-    addToDeleteList(bot.send_message(message.chat.id, 'Введите название категории:'))
+    #addToDeleteList(message)
+    bot.send_message(message.chat.id, 'Введите название категории:')
     bot.register_next_step_handler(message, appendCategory)
 
 @bot.message_handler(commands=['addheading'])
 def addHeading(message):
-    addToDeleteList(message)
-    addToDeleteList(bot.send_message(message.chat.id, 'Введите название:'))
+    bot.send_message(message.chat.id, 'Введите название:')
     bot.register_next_step_handler(message, changeHeading)
 
 '''@bot.message_handler(commands=['start'])
@@ -150,7 +153,7 @@ def callback_message(callback):
 
     key = callback.data[1:]
     if callback.data[0] == '1':
-        addToDeleteList(bot.send_message(callback.message.chat.id, 'Введите задачу:'))
+        bot.send_message(callback.message.chat.id, 'Введите задачу:')
         bot.register_next_step_handler(callback.message, appendTask, key)
 
     elif callback.data[0] == '2' or callback.data[0] == '4' or callback.data[0] == '6':
@@ -176,12 +179,12 @@ def callback_message(callback):
             bot.reply_to(callback.message, 'Выберите задачу:', reply_markup=markup)
 
     elif callback.data[0] == '3':
-        addToDeleteList(bot.send_message(callback.message.chat.id, 'Введите новое название задачи:'))
+        bot.send_message(callback.message.chat.id, 'Введите новое название задачи:')
         bot.register_next_step_handler(callback.message, renameTask,
                                        callback.data[callback.data.index('|') + 1:],
                                        int(callback.data[1:callback.data.index('|')]))
     elif callback.data[0] == '5':
-        addToDeleteList(bot.send_message(callback.message.chat.id, callback.data))
+        bot.send_message(callback.message.chat.id, callback.data)
         deleteTask(callback.data[callback.data.index('|') + 1:],
                                        int(callback.data[1:callback.data.index('|')]))
     elif callback.data[0] == '7':
@@ -214,11 +217,10 @@ def appendCategory(message):
         categories[message.text] = []
         showProgress()
     else:
-        addToDeleteList(bot.send_message(message.chat.id, 'Название слишком длинное. Сократите его или уберите несколько смайликов.'))
+        bot.send_message(message.chat.id, 'Название слишком длинное. Сократите его или уберите несколько смайликов.')
         bot.register_next_step_handler(message, appendCategory)
 
 def changeHeading(message):
-    addToDeleteList(message)
     global heading
     heading = message.text
     showProgress()
