@@ -1,12 +1,12 @@
 import telebot
-import webbrowser
+#import webbrowser
 from telebot import types
-from telebot.types import InlineKeyboardMarkup
 import sqlite3
+from datetime import datetime
 
 import schedule
 import time
-import threading
+#import threading
 
 botKey = '7760507421:AAFQ2xUSEf8T78A6MrB7aHaexz-2BaOcDGg'
 bot = telebot.TeleBot(botKey)
@@ -23,9 +23,26 @@ categories = {
     'Категория 2': ['task3', 'task4']
 }
 
+months = {
+    1: 'января',
+    2: 'февраля',
+    3: 'марта',
+    4: 'апреля',
+    5: 'мая',
+    6: 'июня',
+    7: 'июля',
+    8: 'августа',
+    9: 'сентября',
+    10: 'октября',
+    11: 'ноября',
+    12: 'декабря'
+}
+
 def toString(slovar):
+    today = datetime.now()
+    result = f'{today.day} {months[today.month]} {today.year} года\n\n'
+
     if dailyMessageID != 0: bot.delete_message(chatID, dailyMessageID)
-    result = ''
     if heading != '':
         result += heading + '\n\n'
     for key in slovar:
@@ -56,20 +73,70 @@ commands = ['/start', '/addheading','/addcategorytask','/addtask','/renametask',
 @bot.message_handler(commands=['start'])
 def helloWorld(message):
     #addToDeleteList(message)
-    conn = sqlite3.connect('telebot.sql')
-    cur = conn.cursor()
-
-    cur.execute('CREATE TABLE IF NOT EXISTS users (id int auto_increment primary key)')
-
     global chatID
     chatID = message.chat.id
-    user_date = message.date
-    bot.send_message(chatID, user_date)
+
+    conn = sqlite3.connect('plannedTasks.sql') # открывает соединение с бд
+    cur = conn.cursor() # создаёт курсор
+
+    cur.execute(
+        'CREATE TABLE IF NOT EXISTS plannedtasks (id int auto_increment primary key, '
+        'date varchar(10), task varchar(100))')
+
+    conn.commit()  # синхронизируем команду ^ с бд
+    cur.close()  # закрывает курсор
+    conn.close() #закрыват соединение с бд
+
+    #user_date = message.date
+    #bot.send_message(chatID, user_date)
     bot.send_message(chatID, 'Привет! Это бот "Диспетчер задач". '
                                       'С его помощью вы можете:\n - отслеживать выполнение своих ежедневных и глобальных задач\n'
                                       ' - разделять их по категориям\n - отмечать их выполнение \n - устанавливать временной лимит и напоминания\n'
-                                      ' - анализировать динамику своего прогресса, а также обращаться к полезным ресурсам по обучению и саморазвитию.')
+                                      ' - анализировать динамику своего прогресса, а также планировать задачи на любой день вперёд.')
     showProgress()
+
+@bot.message_handler(commands=['plantask'])
+def planTask(message):
+    bot.send_message(message.chat.id, 'Введите дату в формате ДД.ММ:')
+    bot.register_next_step_handler(message, chooseDate)
+
+def chooseDate(message):
+    date = message.text.strip()
+    bot.send_message(message.chat.id, 'Введите задачу:')
+    bot.register_next_step_handler(message, chooseTask, date)
+
+def chooseTask(message, date):
+    conn = sqlite3.connect('plannedTasks.sql')  # открывает соединение с бд
+    cur = conn.cursor()  # создаёт курсор
+
+    cur.execute("INSERT INTO plannedtasks (date, task) VALUES ('%s', '%s')" % (date, message.text))
+
+    conn.commit()  # синхронизируем команду ^ с бд
+    cur.close()  # закрывает курсор
+    conn.close()  # закрыват соединение с бд
+
+    bot.send_message(message.chat.id, 'Задача запланирована')
+
+@bot.message_handler(commands=['showplannedtasks'])
+def showPlannedTasks(message):
+    conn = sqlite3.connect('plannedTasks.sql')  # открывает соединение с бд
+    cur = conn.cursor()  # создаёт курсор
+
+    cur.execute('SELECT * FROM plannedtasks')
+    tasks = cur.fetchall()  # возвращает все найденные записи
+
+    info = ''
+    for task in tasks:
+        info += f'Дата: {task[1]}, задача: {task[2]}\n'
+
+    cur.close()  # закрывает курсор
+    conn.close()  # закрыват соединение с бд
+
+    bot.send_message(message.chat.id, info)
+
+@bot.message_handler(commands=['deleteplannedtask'])
+def deletePlannedTask(message):
+    pass
 
 def showProgress():
     global dailyMessageID
@@ -190,7 +257,6 @@ def callback_message(callback):
     elif callback.data[0] == '7':
         markTask(callback.data[callback.data.index('|') + 1:],
                    int(callback.data[1:callback.data.index('|')]))
-
 
     #bot.edit_message_text('Edited text', callback.message.chat.id, callback.message.message_id)
 
