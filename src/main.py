@@ -6,7 +6,7 @@ from datetime import datetime
 
 #import schedule
 import time
-#import threading
+import threading
 
 botKey = '7760507421:AAFQ2xUSEf8T78A6MrB7aHaexz-2BaOcDGg'
 bot = telebot.TeleBot(botKey)
@@ -37,6 +37,21 @@ months = {
     11: 'ноября',
     12: 'декабря'
 }
+
+currentDate = None
+lastDate = None
+
+def checkDay():
+    global chatID
+    global lastDate
+    global currentDate
+
+    currentDate = datetime.now().strftime('%Y-%m-%d')
+    if currentDate != lastDate:
+        bot.send_message(chatID, currentDate)
+        lastDate = currentDate
+
+    threading.Timer(10, checkDay).start()
 
 def toString(slovar):
     today = datetime.now()
@@ -75,6 +90,16 @@ def helloWorld(message):
     #addToDeleteList(message)
     global chatID
     chatID = message.chat.id
+
+    global lastDate
+
+    if lastDate is None:
+        global currentDate
+        currentDate = datetime.now().minute
+        # для проверки даты:        .strftime('%Y-%m-%d')
+        lastDate = currentDate
+        bot.send_message(chatID, 'timer started')
+        checkDay()
 
     conn = sqlite3.connect('plannedTasks.sql') # открывает соединение с бд
     cur = conn.cursor() # создаёт курсор
