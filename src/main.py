@@ -4,7 +4,7 @@ from telebot import types
 import sqlite3
 from datetime import datetime
 
-import schedule
+#import schedule
 import time
 #import threading
 
@@ -14,9 +14,9 @@ bot = telebot.TeleBot(botKey)
 heading = ''
 
 global chatID
-global dailyMessageID
-dailyMessageID = 0
-messages_to_delete = []
+#global dailyMessageID
+#dailyMessageID = 0
+#messages_to_delete = []
 
 categories = {
     'Категория 1': ['task1', 'task2'],
@@ -42,7 +42,7 @@ def toString(slovar):
     today = datetime.now()
     result = f'{today.day} {months[today.month]} {today.year} года\n\n'
 
-    if dailyMessageID != 0: bot.delete_message(chatID, dailyMessageID)
+    #if dailyMessageID != 0: bot.delete_message(chatID, dailyMessageID)
     if heading != '':
         result += heading + '\n\n'
     for key in slovar:
@@ -101,14 +101,22 @@ def planTask(message):
     bot.register_next_step_handler(message, chooseDate)
 
 def chooseDate(message):
-    date = message.text.strip()
-    bot.send_message(message.chat.id, 'Введите задачу:')
-    bot.register_next_step_handler(message, chooseTask, date)
+    text = message.text
+    if text[0:2].isdigit() and text[2] == '.' and text[3:5]:
+        date = message.text.strip()
+        bot.send_message(message.chat.id, 'Введите задачу:')
+        bot.register_next_step_handler(message, chooseTask, date)
+    else:
+        bot.delete_message(message.chat.id, message.message_id)
+        bot.send_message(message.chat.id, 'Неверный формат даты')
 
 def chooseTask(message, date):
     conn = sqlite3.connect('plannedTasks.sql')  # открывает соединение с бд
     cur = conn.cursor()  # создаёт курсор
 
+    cur.execute(
+        'CREATE TABLE IF NOT EXISTS plannedtasks (id int auto_increment primary key, '
+        'date varchar(10), task varchar(100))')
     cur.execute("INSERT INTO plannedtasks (date, task) VALUES ('%s', '%s')" % (date, message.text))
 
     conn.commit()  # синхронизируем команду ^ с бд
@@ -132,16 +140,31 @@ def showPlannedTasks(message):
     cur.close()  # закрывает курсор
     conn.close()  # закрыват соединение с бд
 
-    bot.send_message(message.chat.id, info)
+    if info != '':
+        bot.send_message(message.chat.id, info)
+    else:
+        bot.send_message(message.chat.id, 'Нет запланированных задач')
 
-@bot.message_handler(commands=['deleteplannedtask'])
-def deletePlannedTask(message):
-    pass
+@bot.message_handler(commands=['deleteallplans'])
+def deleteAllPlans(message):
+    conn = sqlite3.connect('plannedTasks.sql')  # открывает соединение с бд
+    cur = conn.cursor()  # создаёт курсор
+
+    cur.execute("DROP TABLE plannedtasks")
+    cur.execute(
+        'CREATE TABLE IF NOT EXISTS plannedtasks (id int auto_increment primary key, '
+        'date varchar(10), task varchar(100))')
+
+    cur.close()  # закрывает курсор
+    conn.close()  # закрыват соединение с бд
+
+    bot.send_message(message.chat.id, 'Запланированные задачи удалены')
 
 def showProgress():
-    global dailyMessageID
+    #global dailyMessageID
     global chatID
-    dailyMessageID = bot.send_message(chatID, toString(categories)).message_id
+    #dailyMessageID =
+    bot.send_message(chatID, toString(categories))
     '''for msg in messages_to_delete:
         try:
             messages_to_delete.remove(msg)
@@ -152,8 +175,8 @@ def showProgress():
 def send_delayed_message(message):
     bot.send_message(chatID, message)
 
-def schedule_message(message, delay):
-    schedule.every(delay).hours.do(send_delayed_message, message)
+#def schedule_message(message, delay):
+#    schedule.every(delay).hours.do(send_delayed_message, message)
 
 @bot.message_handler(commands=['addcategorytask', 'renametask', 'deletetask', 'marktask'])
 def operateWithTask(message):

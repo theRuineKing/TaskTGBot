@@ -5,8 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60a00ab4-248c-4c70-ad1b-79cb9661b203" name="Changes" comment="change commit">
-      <change beforePath="$PROJECT_DIR$/.idea/TaskTGBot.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TaskTGBot.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
     </list>
@@ -114,7 +112,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740921470248</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="change commit">
+      <option name="closed" value="true" />
+      <created>1741293338880</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1741293338880</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -132,6 +138,7 @@
     <MESSAGE value="initial commit" />
     <MESSAGE value="1 commit" />
     <MESSAGE value="pre-change commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="pre-change commit" />
+    <MESSAGE value="change commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="change commit" />
   </component>
 </project>
