@@ -105,8 +105,7 @@ def helloWorld(message):
     cur = conn.cursor() # создаёт курсор
 
     cur.execute(
-        'CREATE TABLE IF NOT EXISTS plannedtasks (id int auto_increment primary key, '
-        'date varchar(10), task varchar(100))')
+        'CREATE TABLE IF NOT EXISTS plannedtasks (id int auto_increment primary key, date varchar(10), task varchar(100))')
 
     conn.commit()  # синхронизируем команду ^ с бд
     cur.close()  # закрывает курсор
