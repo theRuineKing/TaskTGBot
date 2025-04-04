@@ -3,6 +3,7 @@ import telebot
 from telebot import types
 import sqlite3
 from datetime import datetime
+import json
 
 #import schedule
 import time
@@ -11,12 +12,9 @@ import threading
 botKey = '7760507421:AAFQ2xUSEf8T78A6MrB7aHaexz-2BaOcDGg'
 bot = telebot.TeleBot(botKey)
 
-heading = ''
+heading = '' #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-global chatID
-#global dailyMessageID
-#dailyMessageID = 0
-#messages_to_delete = []
+#global chatID
 
 categories = {
     'Категория 1': ['task1', 'task2'],
@@ -38,10 +36,10 @@ months = {
     12: 'декабря'
 }
 
-currentDate = None
-lastDate = None
+currentDate = None #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+lastDate = None #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def checkDay():
+def checkDay(): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     global chatID
     global lastDate
     global currentDate
@@ -53,11 +51,11 @@ def checkDay():
 
     threading.Timer(10, checkDay).start()
 
-def toString(slovar):
-    today = datetime.now()
-    result = f'{today.day} {months[today.month]} {today.year} года\n\n'
 
-    #if dailyMessageID != 0: bot.delete_message(chatID, dailyMessageID)
+def toString(slovar):
+    today = datetime.now() #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    result = f'{today.day} {months[today.month]} {today.year} года\n\n' #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     if heading != '':
         result += heading + '\n\n'
     for key in slovar:
@@ -65,7 +63,6 @@ def toString(slovar):
         for item in slovar[key]:
             result += '- ' + item + '\n'
         result += '\n'
-
     return result
 
 #def addToDeleteList(message):
@@ -85,13 +82,22 @@ def deleteMessages():
 commands = ['/start', '/addheading','/addcategorytask','/addtask','/renametask','/marktask','/deletetask',
             '/addcategory','/renamecategory','/deletecategory', '/deleteheading']
 
+
 @bot.message_handler(commands=['start'])
 def helloWorld(message):
-    #addToDeleteList(message)
-    global chatID
-    chatID = message.chat.id
+    import cats
+    listName = 'id' + str(message.from_user.id)
+    '''with open(cats, 'r') as File:
+        data = json.load(File)
+        # Проверяем, является ли data списком и содержит ли он искомый словарь
+        if isinstance(data, list):
+            return target_dict in data
+        return False'''
+    with open(cats, 'w'):
+        cats.write('id' + str(message.from_user.id) + ' = ')
+        json.dump(categories, cats)
 
-    global lastDate
+    '''global lastDate
 
     if lastDate is None:
         global currentDate
@@ -99,13 +105,13 @@ def helloWorld(message):
         # для проверки даты:        .strftime('%Y-%m-%d')
         lastDate = currentDate
         bot.send_message(chatID, 'timer started')
-        checkDay()
+        checkDay()'''
 
-    conn = sqlite3.connect('plannedTasks.sql') # открывает соединение с бд
+    conn = sqlite3.connect(f'Table{str(message.from_user.id)}.sql') # открывает соединение с бд
     cur = conn.cursor() # создаёт курсор
 
     cur.execute(
-        'CREATE TABLE IF NOT EXISTS plannedtasks (id int auto_increment primary key, date varchar(10), task varchar(100))')
+        f'CREATE TABLE IF NOT EXISTS Table{str(message.from_user.id)} (id int auto_increment primary key, date varchar(10), task varchar(100))')
 
     conn.commit()  # синхронизируем команду ^ с бд
     cur.close()  # закрывает курсор
@@ -149,6 +155,7 @@ def chooseTask(message, date):
 
     bot.send_message(message.chat.id, 'Задача запланирована')
 
+
 @bot.message_handler(commands=['showplannedtasks'])
 def showPlannedTasks(message):
     conn = sqlite3.connect('plannedTasks.sql')  # открывает соединение с бд
@@ -169,6 +176,7 @@ def showPlannedTasks(message):
     else:
         bot.send_message(message.chat.id, 'Нет запланированных задач')
 
+
 @bot.message_handler(commands=['deleteallplans'])
 def deleteAllPlans(message):
     conn = sqlite3.connect('plannedTasks.sql')  # открывает соединение с бд
@@ -185,16 +193,7 @@ def deleteAllPlans(message):
     bot.send_message(message.chat.id, 'Запланированные задачи удалены')
 
 def showProgress():
-    #global dailyMessageID
-    global chatID
-    #dailyMessageID =
     bot.send_message(chatID, toString(categories))
-    '''for msg in messages_to_delete:
-        try:
-            messages_to_delete.remove(msg)
-            bot.delete_message(chatID, msg.id)
-        except Exception as e:
-            print("", e)'''
 
 def send_delayed_message(message):
     bot.send_message(chatID, message)
@@ -204,8 +203,6 @@ def send_delayed_message(message):
 
 @bot.message_handler(commands=['addcategorytask', 'renametask', 'deletetask', 'marktask'])
 def operateWithTask(message):
-    #addToDeleteList(message)
-
     markup = types.InlineKeyboardMarkup()
 
     btns = []
@@ -224,7 +221,6 @@ def operateWithTask(message):
 
 @bot.message_handler(commands=['addcategory'])
 def addCategory(message):
-    #addToDeleteList(message)
     bot.send_message(message.chat.id, 'Введите название категории:')
     bot.register_next_step_handler(message, appendCategory)
 
