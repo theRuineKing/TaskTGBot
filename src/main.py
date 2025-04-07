@@ -3,6 +3,7 @@ import telebot
 from telebot import types
 import sqlite3
 from datetime import datetime
+import slovari
 import json
 
 #import schedule
@@ -82,20 +83,20 @@ def deleteMessages():
 commands = ['/start', '/addheading','/addcategorytask','/addtask','/renametask','/marktask','/deletetask',
             '/addcategory','/renamecategory','/deletecategory', '/deleteheading']
 
+ids = []
 
 @bot.message_handler(commands=['start'])
 def helloWorld(message):
-    import cats
-    listName = 'id' + str(message.from_user.id)
-    '''with open(cats, 'r') as File:
-        data = json.load(File)
-        # Проверяем, является ли data списком и содержит ли он искомый словарь
-        if isinstance(data, list):
-            return target_dict in data
-        return False'''
-    with open(cats, 'w'):
-        cats.write('id' + str(message.from_user.id) + ' = ')
-        json.dump(categories, cats)
+    id = message.from_user.id
+    userDict = f'slovarOfUser{id}'
+    if id not in ids:
+        ids.append(id)
+        with open('slovari.py', 'w') as file:
+            file.write(userDict + ' = ')
+            json.dump(categories, file)
+    from slovari import userDict
+    print(ids)
+    from my_dict import my_dict
 
     '''global lastDate
 
